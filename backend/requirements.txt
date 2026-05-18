@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+scikit-learn
+datasets
+pandas
+numpy
+joblib
+matplotlib
+seaborn
+wordcloud
+notebook
