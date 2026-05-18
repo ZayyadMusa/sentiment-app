@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentiment Analyser</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Sentiment Analyser</h1>
+      <p class="subtitle">Trained on 25,000 IMDB movie reviews</p>
+    </header>
+
+    <main>
+      <div class="card input-card">
+        <label for="review-input">Enter a movie review or any text:</label>
+        <textarea
+          id="review-input"
+          placeholder="e.g. This film was an absolute masterpiece — stunning visuals and a gripping story."
+          rows="6"
+        ></textarea>
+        <div class="actions">
+          <button id="analyze-btn" onclick="analyze()">Analyse</button>
+          <button id="clear-btn" onclick="clearAll()">Clear</button>
+        </div>
+      </div>
+
+      <div class="card result-card" id="result-card" hidden>
+        <div class="result-header">
+          <span id="sentiment-label" class="sentiment-label"></span>
+          <span id="confidence-badge" class="confidence-badge"></span>
+        </div>
+        <p class="result-meta">Cleaned input: <em id="cleaned-text"></em></p>
+      </div>
+
+      <div class="card error-card" id="error-card" hidden>
+        <p id="error-message"></p>
+      </div>
+
+      <div class="card history-card" id="history-card" hidden>
+        <h2>Recent analyses</h2>
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th>Text (truncated)</th>
+              <th>Sentiment</th>
+              <th>Confidence</th>
+            </tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
