@@ -1,26 +1,12 @@
-"""
-Evaluation script — run after train.py to measure real-world performance.
-
-What this teaches:
-  - Why train accuracy alone is misleading (overfitting)
-  - Test-set evaluation: accuracy, precision, recall, F1
-  - Confusion matrix: visualizes false positives vs false negatives
-
-Usage:
-    cd backend
-    python evaluate.py
-"""
+# checks how the model actually performs on data it has never seen
+# run after train.py - cd backend && python evaluate.py
 
 import os
 import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datasets import load_dataset
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix,
-)
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
 from preprocess import clean_text
 
@@ -28,7 +14,7 @@ SAVE_DIR = os.path.join(os.path.dirname(__file__), "saved_model")
 
 
 def load_test_data():
-    print("Loading IMDB test split (25,000 reviews)...")
+    print("Loading test split...")
     dataset = load_dataset("imdb")
     texts = [clean_text(t) for t in dataset["test"]["text"]]
     labels = dataset["test"]["label"]
@@ -41,29 +27,24 @@ def evaluate():
 
     texts, labels = load_test_data()
     X = vectorizer.transform(texts)
-    predictions = clf.predict(X)
+    preds = clf.predict(X)
 
-    acc = accuracy_score(labels, predictions)
-    print(f"\nTest accuracy: {acc:.4f}  ({acc*100:.1f}%)")
+    print(f"\nTest accuracy: {accuracy_score(labels, preds):.4f}")
     print("\nClassification Report:")
-    print(classification_report(labels, predictions, target_names=["Negative", "Positive"]))
+    print(classification_report(labels, preds, target_names=["Negative", "Positive"]))
 
-    cm = confusion_matrix(labels, predictions)
+    cm = confusion_matrix(labels, preds)
     plt.figure(figsize=(6, 5))
-    sns.heatmap(
-        cm,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        xticklabels=["Negative", "Positive"],
-        yticklabels=["Negative", "Positive"],
-    )
-    plt.title("Confusion Matrix — IMDB Sentiment")
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
+                xticklabels=["Negative", "Positive"],
+                yticklabels=["Negative", "Positive"])
+    plt.title("Confusion Matrix")
     plt.ylabel("Actual")
     plt.xlabel("Predicted")
     plt.tight_layout()
-    plt.savefig(os.path.join(SAVE_DIR, "confusion_matrix.png"))
-    print("\nConfusion matrix saved to saved_model/confusion_matrix.png")
+    out = os.path.join(SAVE_DIR, "confusion_matrix.png")
+    plt.savefig(out)
+    print(f"\nConfusion matrix saved to {out}")
     plt.show()
 
 

@@ -27,10 +27,10 @@ async function analyze() {
 
     const data = await response.json();
     showResult(data);
-    await loadHistory();
+    await loadHistory(); // refresh the table so the new entry shows up straight away
   } catch (err) {
     if (err.message === "Failed to fetch") {
-      showError("Cannot reach the API. Make sure the server is running:\n  python -m uvicorn main:app --reload");
+      showError("Can't reach the API - make sure the server is running.");
     } else {
       showError(err.message);
     }
@@ -58,7 +58,7 @@ async function loadHistory() {
     const reviews = await response.json();
     renderHistory(reviews);
   } catch {
-    // silently skip — history failing shouldn't block the main flow
+    // don't block the page if history fails to load
   }
 }
 
@@ -78,12 +78,12 @@ function renderHistory(reviews) {
 
   tbody.innerHTML = reviews.map((r) => {
     const date = r.created_at ? r.created_at.replace("T", " ") : "";
-    const reviewSnippet = r.review.length > 80 ? r.review.slice(0, 80) + "…" : r.review;
+    const snippet = r.review.length > 80 ? r.review.slice(0, 80) + "…" : r.review;
     const tag = r.sentiment === "Positive" ? "tag-positive" : "tag-negative";
     return `
       <tr>
         <td><strong>${escapeHtml(r.movie)}</strong></td>
-        <td class="review-cell">${escapeHtml(reviewSnippet)}</td>
+        <td class="review-cell">${escapeHtml(snippet)}</td>
         <td class="${tag}">${r.sentiment}</td>
         <td>${r.confidence}%</td>
         <td>${date}</td>
@@ -92,6 +92,7 @@ function renderHistory(reviews) {
 }
 
 function escapeHtml(str) {
+  // prevents XSS - user input should never be inserted raw into the DOM
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -120,5 +121,4 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.ctrlKey) analyze();
 });
 
-// load existing reviews on page open
-loadHistory();
+loadHistory(); // load saved reviews when the page opens

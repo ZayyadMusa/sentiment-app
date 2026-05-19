@@ -1,10 +1,3 @@
-"""
-SQLite database layer — stores every movie review + its sentiment result.
-
-Uses Python's built-in sqlite3 (no extra install needed).
-The database file is created automatically at backend/reviews.db on first run.
-"""
-
 import sqlite3
 import os
 from datetime import datetime
@@ -14,7 +7,7 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "reviews.db")
 
 def get_connection():
     conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # lets us access columns by name
+    conn.row_factory = sqlite3.Row  # so I can access columns by name not index
     return conn
 
 
@@ -23,11 +16,11 @@ def init_db():
         conn.execute("""
             CREATE TABLE IF NOT EXISTS reviews (
                 id         INTEGER PRIMARY KEY AUTOINCREMENT,
-                movie      TEXT    NOT NULL,
-                review     TEXT    NOT NULL,
-                sentiment  TEXT    NOT NULL,
-                confidence REAL    NOT NULL,
-                created_at TEXT    NOT NULL
+                movie      TEXT NOT NULL,
+                review     TEXT NOT NULL,
+                sentiment  TEXT NOT NULL,
+                confidence REAL NOT NULL,
+                created_at TEXT NOT NULL
             )
         """)
 
