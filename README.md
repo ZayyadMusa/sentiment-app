@@ -1,106 +1,64 @@
-# Sentiment Analysis Web App
+# Movie Sentiment Tracker
 
-An end-to-end NLP project: trains a sentiment classifier on 50,000 IMDB movie
-reviews and serves it through a FastAPI backend + plain HTML/CSS/JS frontend.
+I built this as one of my first proper ML projects while studying for my MSc in AI. The goal was to actually go through the full pipeline — not just train a model in a notebook and call it done, but deploy it properly with an API and a UI.
 
-## What I built and learned
+The idea is simple: you type a movie title, write what you thought about it, and the app tells you whether your review is positive or negative (and how confident it is). Every review you submit gets saved to a database, so you end up with a log of your opinions over time.
 
-| Step | What it teaches |
-|---|---|
-| EDA notebook | Always explore your data before modeling |
-| TF-IDF vectorizer | How text becomes numbers a model can learn from |
-| Logistic Regression | A linear classifier well-suited for high-dimensional sparse features |
-| Train/test split | Why training accuracy alone is misleading |
-| FastAPI endpoint | How to serve an ML model as a REST API |
-| HTML + fetch() | How a frontend talks to a backend API |
+It's trained on 50,000 IMDB movie reviews using TF-IDF + Logistic Regression, which sounds basic but hits ~89% accuracy on unseen data. Good enough to feel real.
 
-## Project structure
+---
 
-```
-sentiment-app/
-├── backend/
-│   ├── main.py          # FastAPI app (prediction endpoint)
-│   ├── train.py         # Training script — run once
-│   ├── evaluate.py      # Metrics: accuracy, F1, confusion matrix
-│   ├── preprocess.py    # Text cleaning helpers
-│   ├── saved_model/     # Serialized model files (not in git)
-│   └── requirements.txt
-├── frontend/
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-├── notebooks/
-│   └── exploration.ipynb   # EDA on the IMDB dataset
-└── README.md
-```
+## How to run it
 
-## Quick start
-
-### 1. Install dependencies
+**Install dependencies** (first time only):
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-### 2. Train the model (one-time, ~2 min)
+**Train the model** (first time only, takes ~2 minutes):
 
 ```bash
-cd backend
 python train.py
 ```
 
-Expected output: `Training accuracy: ~0.998` (high — the model fits the training data)
-
-### 3. Evaluate on the test set
-
-```bash
-python evaluate.py
-```
-
-Expected: ~88–90% test accuracy. Saves a confusion matrix to `saved_model/confusion_matrix.png`.
-
-### 4. Start the API server
+**Start the API:**
 
 ```bash
 python -m uvicorn main:app --reload
 ```
 
-Visit `http://127.0.0.1:8000/docs` — interactive Swagger UI to test the endpoint.
+**Open the app:**
 
-### 5. Open the frontend
+Open `frontend/index.html` in your browser. The API needs to be running for it to work.
 
-Open `frontend/index.html` directly in your browser. Type a review and click Analyse.
+You can also go to `http://127.0.0.1:8000/docs` to test the API directly in the browser — FastAPI generates that automatically which is pretty handy.
 
-**Tip:** Press `Ctrl+Enter` to submit without clicking.
+---
 
-## API reference
+## How it works
 
-### `POST /predict`
+When you submit a review, the text goes through a few steps:
 
-**Request body:**
-```json
-{ "text": "This film was an absolute masterpiece." }
-```
+1. **Cleaning** — strips HTML tags, lowercases everything, removes punctuation
+2. **TF-IDF vectorization** — converts the words into numbers based on how often they appear across all reviews
+3. **Logistic Regression** — predicts positive or negative based on those numbers
+4. **Storage** — the result (movie, review, sentiment, confidence, timestamp) gets saved to a local SQLite database
 
-**Response:**
-```json
-{
-  "sentiment": "Positive",
-  "confidence": 96.3,
-  "cleaned_text": "this film was an absolute masterpiece"
-}
-```
+The history table on the page loads directly from that database, so it persists even after you close and reopen the page.
 
-## Model performance
+---
 
-| Metric | Score |
-|---|---|
-| Test accuracy | ~89% |
-| Positive F1 | ~89% |
-| Negative F1 | ~89% |
+## What I learned building this
 
-## Upgrade path
+- You need to explore your data before touching any model — the EDA notebook (`notebooks/exploration.ipynb`) showed me that IMDB reviews contain raw HTML and that the class split is perfectly 50/50, both of which actually matter
+- Training accuracy being high (~93%) doesn't mean much on its own — test accuracy (~89%) is what you care about
+- Serving an ML model as an API is straightforward with FastAPI once the model is saved — it just loads the `.pkl` files and runs predictions on request
+- CORS is the thing that trips everyone up when a frontend tries to talk to a local API for the first time
 
-To push accuracy to ~93%, fine-tune `distilbert-base-uncased` using
-HuggingFace `Trainer` API — the `preprocess.py` cleaning step stays the same.
+---
+
+## What's next
+
+The plan is to swap out the Logistic Regression for a fine-tuned DistilBERT model, which should push accuracy closer to 93%. The rest of the code stays the same — that's the point of keeping the preprocessing and API separate.
