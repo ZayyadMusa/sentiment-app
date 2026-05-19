@@ -2,12 +2,13 @@
 FastAPI app — serves the trained sentiment model as a REST API.
 
 Endpoints:
-  POST /predict  — accepts text, returns sentiment + confidence
+  POST /predict  — analyse a movie review and save it to the database
+  GET  /reviews  — fetch all saved movie reviews
   GET  /         — health check
 
 Run with:
     cd backend
-    uvicorn main:app --reload
+    python -m uvicorn main:app --reload
 
 Then open http://127.0.0.1:8000/docs for interactive Swagger UI.
 """
@@ -19,8 +20,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from preprocess import clean_text
+from database import init_db, save_review, get_reviews
 
-app = FastAPI(title="Sentiment Analysis API", version="1.0")
+app = FastAPI(title="Movie Sentiment API", version="2.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,6 +34,11 @@ app.add_middleware(
 SAVE_DIR = os.path.join(os.path.dirname(__file__), "saved_model")
 _vectorizer = None
 _clf = None
+
+
+@app.on_event("startup")
+def startup():
+    init_db()
 
 
 def get_model():
@@ -46,11 +53,14 @@ def get_model():
     return _vectorizer, _clf
 
 
-class TextInput(BaseModel):
-    text: str
+class ReviewInput(BaseModel):
+    movie: str
+    review: str
 
 
 class PredictionResult(BaseModel):
+    id: int
+    movie: str
     sentiment: str
     confidence: float
     cleaned_text: str
@@ -58,26 +68,38 @@ class PredictionResult(BaseModel):
 
 @app.get("/")
 def health_check():
-    return {"status": "ok", "message": "Sentiment API is running"}
+    return {"status": "ok", "message": "Movie Sentiment API is running"}
 
 
 @app.post("/predict", response_model=PredictionResult)
-def predict(input: TextInput):
-    if not input.text.strip():
-        raise HTTPException(status_code=400, detail="Text cannot be empty")
+def predict(input: ReviewInput):
+    if not input.movie.strip():
+        raise HTTPException(status_code=400, detail="Movie title cannot be empty")
+    if not input.review.strip():
+        raise HTTPException(status_code=400, detail="Review cannot be empty")
 
     try:
         vectorizer, clf = get_model()
     except FileNotFoundError as e:
         raise HTTPException(status_code=503, detail=str(e))
 
-    cleaned = clean_text(input.text)
+    cleaned = clean_text(input.review)
     features = vectorizer.transform([cleaned])
     label = clf.predict(features)[0]
-    confidence = float(clf.predict_proba(features).max())
+    confidence = round(float(clf.predict_proba(features).max()) * 100, 1)
+    sentiment = "Positive" if label == 1 else "Negative"
+
+    review_id = save_review(input.movie, input.review, sentiment, confidence)
 
     return PredictionResult(
-        sentiment="Positive" if label == 1 else "Negative",
-        confidence=round(confidence * 100, 1),
+        id=review_id,
+        movie=input.movie,
+        sentiment=sentiment,
+        confidence=confidence,
         cleaned_text=cleaned,
     )
+
+
+@app.get("/reviews")
+def list_reviews():
+    return get_reviews(limit=50)
