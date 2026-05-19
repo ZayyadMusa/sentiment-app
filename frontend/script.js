@@ -1,28 +1,23 @@
-const API_URL = "http://127.0.0.1:8000/predict";
-const MAX_HISTORY = 5;
-
-const history = [];
+const API_BASE = "http://127.0.0.1:8000";
 
 async function analyze() {
-  const input = document.getElementById("review-input");
-  const text = input.value.trim();
+  const movie = document.getElementById("movie-input").value.trim();
+  const review = document.getElementById("review-input").value.trim();
 
-  hideAll();
+  hideCards();
 
-  if (!text) {
-    showError("Please enter some text before analysing.");
-    return;
-  }
+  if (!movie) { showError("Please enter a movie title."); return; }
+  if (!review) { showError("Please write a review."); return; }
 
   const btn = document.getElementById("analyze-btn");
   btn.disabled = true;
   btn.textContent = "Analysing...";
 
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetch(`${API_BASE}/predict`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ movie, review }),
     });
 
     if (!response.ok) {
@@ -32,56 +27,76 @@ async function analyze() {
 
     const data = await response.json();
     showResult(data);
-    addToHistory(text, data);
+    await loadHistory();
   } catch (err) {
     if (err.message === "Failed to fetch") {
-      showError("Cannot reach the API. Make sure the server is running: uvicorn main:app --reload");
+      showError("Cannot reach the API. Make sure the server is running:\n  python -m uvicorn main:app --reload");
     } else {
       showError(err.message);
     }
   } finally {
     btn.disabled = false;
-    btn.textContent = "Analyse";
+    btn.textContent = "Analyse & Save";
   }
 }
 
 function showResult(data) {
   const card = document.getElementById("result-card");
-  const label = document.getElementById("sentiment-label");
-  const badge = document.getElementById("confidence-badge");
-  const cleaned = document.getElementById("cleaned-text");
-
   const isPositive = data.sentiment === "Positive";
-  label.textContent = isPositive ? "Positive" : "Negative";
-  badge.textContent = `${data.confidence}% confidence`;
-  cleaned.textContent = data.cleaned_text.slice(0, 120) + (data.cleaned_text.length > 120 ? "..." : "");
+
+  document.getElementById("movie-label").textContent = data.movie;
+  document.getElementById("sentiment-label").textContent = `— ${data.sentiment}`;
+  document.getElementById("confidence-badge").textContent = `${data.confidence}% confidence`;
 
   card.className = `card result-card ${isPositive ? "positive" : "negative"}`;
   card.hidden = false;
 }
 
-function addToHistory(text, data) {
-  history.unshift({ text, ...data });
-  if (history.length > MAX_HISTORY) history.pop();
-  renderHistory();
+async function loadHistory() {
+  try {
+    const response = await fetch(`${API_BASE}/reviews`);
+    const reviews = await response.json();
+    renderHistory(reviews);
+  } catch {
+    // silently skip — history failing shouldn't block the main flow
+  }
 }
 
-function renderHistory() {
-  const card = document.getElementById("history-card");
+function renderHistory(reviews) {
+  const emptyState = document.getElementById("empty-state");
+  const table = document.getElementById("history-table");
   const tbody = document.getElementById("history-body");
 
-  tbody.innerHTML = history
-    .map(
-      (item) => `
-      <tr>
-        <td>${item.text.slice(0, 60)}${item.text.length > 60 ? "…" : ""}</td>
-        <td class="tag-${item.sentiment.toLowerCase()}">${item.sentiment}</td>
-        <td>${item.confidence}%</td>
-      </tr>`
-    )
-    .join("");
+  if (reviews.length === 0) {
+    emptyState.hidden = false;
+    table.hidden = true;
+    return;
+  }
 
-  card.hidden = false;
+  emptyState.hidden = true;
+  table.hidden = false;
+
+  tbody.innerHTML = reviews.map((r) => {
+    const date = r.created_at ? r.created_at.replace("T", " ") : "";
+    const reviewSnippet = r.review.length > 80 ? r.review.slice(0, 80) + "…" : r.review;
+    const tag = r.sentiment === "Positive" ? "tag-positive" : "tag-negative";
+    return `
+      <tr>
+        <td><strong>${escapeHtml(r.movie)}</strong></td>
+        <td class="review-cell">${escapeHtml(reviewSnippet)}</td>
+        <td class="${tag}">${r.sentiment}</td>
+        <td>${r.confidence}%</td>
+        <td>${date}</td>
+      </tr>`;
+  }).join("");
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 function showError(message) {
@@ -90,16 +105,20 @@ function showError(message) {
   card.hidden = false;
 }
 
-function hideAll() {
+function hideCards() {
   document.getElementById("result-card").hidden = true;
   document.getElementById("error-card").hidden = true;
 }
 
-function clearAll() {
+function clearForm() {
+  document.getElementById("movie-input").value = "";
   document.getElementById("review-input").value = "";
-  hideAll();
+  hideCards();
 }
 
-document.getElementById("review-input").addEventListener("keydown", (e) => {
+document.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && e.ctrlKey) analyze();
 });
+
+// load existing reviews on page open
+loadHistory();

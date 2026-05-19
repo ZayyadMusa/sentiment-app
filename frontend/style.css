@@ -26,7 +26,7 @@ body {
 }
 
 .container {
-  max-width: 680px;
+  max-width: 760px;
   margin: 0 auto;
 }
 
@@ -38,7 +38,6 @@ header {
 header h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--text);
 }
 
 .subtitle {
@@ -56,33 +55,41 @@ header h1 {
   box-shadow: 0 1px 3px rgba(0,0,0,.06);
 }
 
+.field {
+  margin-bottom: 1rem;
+}
+
 label {
   display: block;
   font-weight: 600;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
 }
 
+input[type="text"],
 textarea {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.75rem;
+  padding: 0.65rem 0.85rem;
   font-size: 0.95rem;
   font-family: inherit;
-  resize: vertical;
   color: var(--text);
   outline: none;
   transition: border-color 0.2s;
 }
 
+input[type="text"]:focus,
 textarea:focus {
   border-color: var(--accent);
 }
 
+textarea { resize: vertical; }
+
 .actions {
   display: flex;
   gap: 0.75rem;
-  margin-top: 1rem;
+  margin-top: 0.25rem;
 }
 
 button {
@@ -124,12 +131,18 @@ button {
 .result-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.movie-label {
+  font-size: 1.1rem;
+  font-weight: 700;
 }
 
 .sentiment-label {
-  font-size: 1.4rem;
+  font-size: 1rem;
   font-weight: 700;
 }
 
@@ -138,16 +151,15 @@ button {
 
 .confidence-badge {
   background: rgba(0,0,0,.08);
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 99px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
 .result-meta {
   font-size: 0.85rem;
   color: var(--muted);
-  word-break: break-word;
 }
 
 /* Error card */
@@ -158,20 +170,27 @@ button {
   font-weight: 500;
 }
 
-/* History table */
+/* History */
 .history-card h2 {
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.empty-state {
+  color: var(--muted);
+  font-size: 0.92rem;
+  text-align: center;
+  padding: 1rem 0;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 
 th {
@@ -180,12 +199,19 @@ th {
   border-bottom: 2px solid var(--border);
   color: var(--muted);
   font-weight: 600;
+  white-space: nowrap;
 }
 
 td {
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.75rem;
   border-bottom: 1px solid var(--border);
-  vertical-align: middle;
+  vertical-align: top;
+}
+
+td.review-cell {
+  max-width: 300px;
+  color: var(--muted);
+  font-size: 0.84rem;
 }
 
 .tag-positive { color: var(--positive); font-weight: 700; }

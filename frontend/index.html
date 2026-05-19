@@ -3,50 +3,66 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sentiment Analyser</title>
+  <title>Movie Sentiment Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Sentiment Analyser</h1>
-      <p class="subtitle">Trained on 25,000 IMDB movie reviews</p>
+      <h1>Movie Sentiment Tracker</h1>
+      <p class="subtitle">Write a review — we'll analyse it and save it</p>
     </header>
 
     <main>
       <div class="card input-card">
-        <label for="review-input">Enter a movie review or any text:</label>
-        <textarea
-          id="review-input"
-          placeholder="e.g. This film was an absolute masterpiece — stunning visuals and a gripping story."
-          rows="6"
-        ></textarea>
+        <div class="field">
+          <label for="movie-input">Movie title</label>
+          <input
+            type="text"
+            id="movie-input"
+            placeholder="e.g. Inception"
+          />
+        </div>
+
+        <div class="field">
+          <label for="review-input">Your review</label>
+          <textarea
+            id="review-input"
+            placeholder="Write what you thought about it..."
+            rows="5"
+          ></textarea>
+        </div>
+
         <div class="actions">
-          <button id="analyze-btn" onclick="analyze()">Analyse</button>
-          <button id="clear-btn" onclick="clearAll()">Clear</button>
+          <button type="button" id="analyze-btn" onclick="analyze()">Analyse &amp; Save</button>
+          <button type="button" id="clear-btn" onclick="clearForm()">Clear</button>
         </div>
       </div>
 
       <div class="card result-card" id="result-card" hidden>
         <div class="result-header">
+          <span id="movie-label" class="movie-label"></span>
           <span id="sentiment-label" class="sentiment-label"></span>
           <span id="confidence-badge" class="confidence-badge"></span>
         </div>
-        <p class="result-meta">Cleaned input: <em id="cleaned-text"></em></p>
+        <p class="result-meta">Saved to your review log below.</p>
       </div>
 
       <div class="card error-card" id="error-card" hidden>
         <p id="error-message"></p>
       </div>
 
-      <div class="card history-card" id="history-card" hidden>
-        <h2>Recent analyses</h2>
-        <table id="history-table">
+      <div class="card history-card" id="history-card">
+        <h2>Your movie reviews</h2>
+        <p class="empty-state" id="empty-state">No reviews yet — add your first one above.</p>
+        <table id="history-table" hidden>
           <thead>
             <tr>
-              <th>Text (truncated)</th>
+              <th>Movie</th>
+              <th>Review</th>
               <th>Sentiment</th>
               <th>Confidence</th>
+              <th>Date</th>
             </tr>
           </thead>
           <tbody id="history-body"></tbody>
