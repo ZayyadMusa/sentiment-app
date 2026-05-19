@@ -6,8 +6,9 @@ __pycache__/
 venv/
 .venv/
 
-# Model files (large binaries — don't commit trained models)
-backend/saved_model/*.pkl
+# Model files and generated artifacts — don't commit these
+backend/saved_model/
+backend/reviews.db
 
 # Jupyter
 .ipynb_checkpoints/
