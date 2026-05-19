@@ -63,7 +63,7 @@ Expected: ~88–90% test accuracy. Saves a confusion matrix to `saved_model/conf
 ### 4. Start the API server
 
 ```bash
-uvicorn main:app --reload
+python -m uvicorn main:app --reload
 ```
 
 Visit `http://127.0.0.1:8000/docs` — interactive Swagger UI to test the endpoint.
