@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from preprocess import clean_text
-from database import init_db, save_review, get_reviews
+from database import init_db, save_review, get_reviews, delete_review
 
 app = FastAPI(title="Movie Sentiment API", version="2.0")
 
@@ -93,3 +93,11 @@ def predict(input: ReviewInput):
 @app.get("/reviews")
 def list_reviews():
     return get_reviews(limit=50)
+
+
+@app.delete("/reviews/{review_id}")
+def remove_review(review_id: int):
+    deleted = delete_review(review_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Review not found")
+    return {"deleted": review_id}

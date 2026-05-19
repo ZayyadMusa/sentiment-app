@@ -34,6 +34,12 @@ def save_review(movie: str, review: str, sentiment: str, confidence: float) -> i
         return cursor.lastrowid
 
 
+def delete_review(review_id: int) -> bool:
+    with get_connection() as conn:
+        cursor = conn.execute("DELETE FROM reviews WHERE id = ?", (review_id,))
+        return cursor.rowcount > 0
+
+
 def get_reviews(limit: int = 50) -> list[dict]:
     with get_connection() as conn:
         rows = conn.execute(
