@@ -2,9 +2,12 @@ import re
 
 
 def clean_text(text: str) -> str:
-    """Remove HTML tags, punctuation, and extra whitespace from review text."""
+    # IMDB reviews have raw HTML in them like <br /> so I strip those out first
+    # then I lowercase everything so "Great" and "great" aren't treated differently
+    # I only keep letters - punctuation and numbers don't really help with sentiment
+    # finally collapse any extra spaces left behind after all the removal
     text = text.lower()
-    text = re.sub(r"<.*?>", "", text)       # strip HTML tags (common in IMDB reviews)
-    text = re.sub(r"[^a-z\s]", "", text)    # keep only letters and spaces
+    text = re.sub(r"<.*?>", "", text)
+    text = re.sub(r"[^a-z\s]", "", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
