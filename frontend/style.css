@@ -216,3 +216,18 @@ td.review-cell {
 
 .tag-positive { color: var(--positive); font-weight: 700; }
 .tag-negative { color: var(--negative); font-weight: 700; }
+
+.delete-btn {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: transparent;
+  color: var(--negative);
+  border: 1px solid var(--negative);
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.delete-btn:hover { opacity: 1; }

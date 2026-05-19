@@ -81,14 +81,32 @@ function renderHistory(reviews) {
     const snippet = r.review.length > 80 ? r.review.slice(0, 80) + "…" : r.review;
     const tag = r.sentiment === "Positive" ? "tag-positive" : "tag-negative";
     return `
-      <tr>
+      <tr id="row-${r.id}">
         <td><strong>${escapeHtml(r.movie)}</strong></td>
         <td class="review-cell">${escapeHtml(snippet)}</td>
         <td class="${tag}">${r.sentiment}</td>
         <td>${r.confidence}%</td>
         <td>${date}</td>
+        <td><button type="button" class="delete-btn" onclick="deleteReview(${r.id})">Delete</button></td>
       </tr>`;
   }).join("");
+}
+
+async function deleteReview(id) {
+  try {
+    await fetch(`${API_BASE}/reviews/${id}`, { method: "DELETE" });
+    // remove the row directly instead of reloading everything
+    const row = document.getElementById(`row-${id}`);
+    if (row) row.remove();
+
+    // if the table is now empty, show the empty state
+    if (document.getElementById("history-body").children.length === 0) {
+      document.getElementById("history-table").hidden = true;
+      document.getElementById("empty-state").hidden = false;
+    }
+  } catch {
+    alert("Couldn't delete that review - is the server running?");
+  }
 }
 
 function escapeHtml(str) {
